@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 public class BillardTable extends View {
     private Ball ball;
     private static class Ball {
+        private final static int BALL_SPEED_REDUCTION = 2;
         private Paint paint;
         private RectF rect;
         private PointF center;
@@ -56,6 +57,7 @@ public class BillardTable extends View {
 
     private Table table;
     private static class Table {
+        private static final float FRICTION_COEFFICIENT = 0.95f;
         private Paint paint;
         private RectF rect;
 
@@ -95,14 +97,13 @@ public class BillardTable extends View {
 
         ball.getCenter().x = w / 2f;
         ball.getCenter().y = h / 2f;
-
         ball.updateRect();
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        ball.getSpeed().x = (ball.getCenter().x - event.getX()) / 10;
-        ball.getSpeed().y = (ball.getCenter().y - event.getY()) / 10;
+        ball.getSpeed().x = (ball.getCenter().x - event.getX()) / Ball.BALL_SPEED_REDUCTION;
+        ball.getSpeed().y = (ball.getCenter().y - event.getY()) / Ball.BALL_SPEED_REDUCTION;
 
         return super.onTouchEvent(event);
     }
@@ -114,22 +115,26 @@ public class BillardTable extends View {
         canvas.drawRect(table.getRect(), table.getPaint());
         canvas.drawOval(ball.getRect(), ball.getPaint());
 
+        ball.getSpeed().x *= Table.FRICTION_COEFFICIENT;
+        ball.getSpeed().y *= Table.FRICTION_COEFFICIENT;
+
         ball.getCenter().x += ball.getSpeed().x;
         ball.getCenter().y += ball.getSpeed().y;
+        ball.updateRect();
 
         if (table.getRect().left > ball.getRect().left) {
-            ball.getSpeed().x = -ball.getSpeed().x;
+            ball.getSpeed().x = -ball.getSpeed().x * Table.FRICTION_COEFFICIENT;
             ball.getCenter().x = table.getRect().left + ball.getRadius();
         } else if (table.getRect().right < ball.getRect().right) {
-            ball.getSpeed().x = -ball.getSpeed().x;
+            ball.getSpeed().x = -ball.getSpeed().x * Table.FRICTION_COEFFICIENT;
             ball.getCenter().x = table.getRect().right - ball.getRadius();
         }
 
         if (table.getRect().top > ball.getRect().top) {
-            ball.getSpeed().y = -ball.getSpeed().y;
+            ball.getSpeed().y = -ball.getSpeed().y * Table.FRICTION_COEFFICIENT;
             ball.getCenter().y = table.getRect().top + ball.getRadius();
         } else if (table.getRect().bottom < ball.getRect().bottom) {
-            ball.getSpeed().y = -ball.getSpeed().y;
+            ball.getSpeed().y = -ball.getSpeed().y * Table.FRICTION_COEFFICIENT;
             ball.getCenter().y = table.getRect().bottom - ball.getRadius();
         }
 
